@@ -8,6 +8,7 @@
 package io.pleo.antaeus.app
 
 import getPaymentProvider
+import io.pleo.antaeus.core.services.BillingJob
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
@@ -21,9 +22,16 @@ import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.quartz.CronScheduleBuilder.cronSchedule
+import org.quartz.CronTrigger
+import org.quartz.JobBuilder.newJob
+import org.quartz.JobDetail
+import org.quartz.TriggerBuilder.newTrigger
+import org.quartz.impl.StdSchedulerFactory
 import setupInitialData
 import java.io.File
 import java.sql.Connection
+
 
 fun main() {
     // The tables to create in the database.
@@ -61,7 +69,17 @@ fun main() {
     val customerService = CustomerService(dal = dal)
 
     // This is _your_ billing service to be included where you see fit
-    val billingService = BillingService(paymentProvider = paymentProvider)
+    val billingService = BillingService(paymentProvider = paymentProvider, invoiceService = invoiceService)
+
+    // Create the scheduler for the billing service
+    val scheduler = StdSchedulerFactory().scheduler
+    scheduler.start()
+    scheduler.context["billingService"] = billingService
+
+    // Schedule the job for the billing service to run on the first of each month
+    val job: JobDetail = newJob(BillingJob::class.java).withIdentity("billingJob", "group1").build()
+    val trigger: CronTrigger = newTrigger().withIdentity("billingTrigger", "group1").withSchedule(cronSchedule("0 0 0 1 * ?")).build()
+    scheduler.scheduleJob(job, trigger)
 
     // Create REST web service
     AntaeusRest(

@@ -86,3 +86,21 @@ The code given is structured as follows. Feel free however to modify the structu
 * [Sqlite3](https://sqlite.org/index.html) - Database storage engine
 
 Happy hacking 😁!
+
+## Thought Process
+I split the challenge into two components - the scheduler and the invoice processor.
+
+### Choosing a Scheduler
+This is my first time using Kotlin and Gradle, my day-to-day development is mostly in Java with Spring, so I had to
+familiarize myself with Kotlin and Gradle before starting.
+
+As I do not want to re-invent the wheel I decided to find a scheduler library that I could use.
+
+My go-to scheduler is the Spring @Scheduled since it minimizes the code and is pretty flexible. However, I found that
+adding a Spring dependency to multi module Kotlin project is less than ideal just to have access to a scheduler.
+
+My next thought was to go with something Kotlin specific, so I found Krontab but the documentation was limited and the 
+project did not have much activity according to GitHub.
+
+Lastly I decided to go for the Quartz scheduler which has good documentation, is widely used and can be easily added
+as a dependency.
