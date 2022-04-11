@@ -10,7 +10,7 @@ import io.pleo.antaeus.models.Money
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
-const val MAX_RETRIES: Int = 3 // TODO: Make configurable
+const val MAX_RETRIES: Int = 3
 
 class BillingService(
     private val paymentProvider: PaymentProvider,
@@ -53,10 +53,10 @@ class BillingService(
                     exception = currencyMismatchEx
                     // Get the currency from the customer table and update the invoice
                     updateCurrency(invoice)
-                } finally {
-                    if (i == MAX_RETRIES && exception != null) {
-                        throw exception
-                    }
+                }
+
+                if (i == MAX_RETRIES && exception != null) {
+                    throw exception
                 }
             }
 

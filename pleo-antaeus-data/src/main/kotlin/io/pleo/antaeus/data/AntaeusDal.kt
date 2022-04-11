@@ -52,7 +52,7 @@ class AntaeusDal(private val db: Database) {
     }
 
     fun updateInvoice(invoice: Invoice): Invoice? {
-        val id = transaction(db) {
+        transaction(db) {
             InvoiceTable
                 .update() {
                     InvoiceTable.id.eq(id)
