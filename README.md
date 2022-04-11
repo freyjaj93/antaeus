@@ -90,7 +90,7 @@ Happy hacking 😁!
 ## Thought Process
 I split the challenge into two components - the scheduler and the invoice processor.
 
-### Choosing a Scheduler
+### Choosing and Implementing a Scheduler - 4hrs
 This is my first time using Kotlin and Gradle, my day-to-day development is mostly in Java with Spring, so I had to
 familiarize myself with Kotlin and Gradle before starting.
 
@@ -104,3 +104,18 @@ project did not have much activity according to GitHub.
 
 Lastly I decided to go for the Quartz scheduler which has good documentation, is widely used and can be easily added
 as a dependency.
+
+### Implementing the Invoice Processor
+I determined the following requirements based on the description above and the contents of the code:
+
+* Need to get the invoices from the Invoice Table
+* Check if the invoice has been paid - don't want to charge it more than once
+* Charge the invoice if it has not been paid
+* This may throw at least 3 types of exceptions:
+  * CustomerNotFoundException - Add the customer to the customer table and try again
+  * CurrencyMismatchException - find the currency from the customer table and try again
+  * NetworkException - sleep for a bit (configurable?) and try again
+* Now since we are retrying, there needs to be some kind of retry counter that we should not exceed, so we don't end up with an endless loop
+* If there is no exception thrown then there needs to be a check to see if the customer account was successfully charged
+  * If true - update the invoice status with PAID
+  * If false - nothing can be done for now? Maybe send an email to the customer in the future or set their account on hold
