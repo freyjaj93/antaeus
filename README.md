@@ -105,7 +105,7 @@ project did not have much activity according to GitHub.
 Lastly I decided to go for the Quartz scheduler which has good documentation, is widely used and can be easily added
 as a dependency.
 
-### Implementing the Invoice Processor
+### Implementing the Invoice Processor - 4hrs with manual testing and unit tests
 I determined the following requirements based on the description above and the contents of the code:
 
 * Need to get the invoices from the Invoice Table
