@@ -22,34 +22,40 @@ class BillingService(
      * cannot handle it.
      */
     fun processInvoice() {
-        logger.info { "Running the scheduler" }
+        logger.info { "processing invoices" }
         val invoices = invoiceService.fetchAll()
 
         for(invoice in invoices) {
             // Only charge invoices that have not been paid
             if(invoice.status == InvoiceStatus.PAID) {
+                logger.debug { "invoice ${invoice.id} has been paid" }
                 continue
             }
 
             // A retry mechanism in case of an exception
             var exception: Exception? = null
             for (i in 0..MAX_RETRIES) {
+                logger.debug { "try $i to charge invoice ${invoice.id}" }
                 try {
                     if (paymentProvider.charge(invoice)) {
                         invoice.status = InvoiceStatus.PAID
                         invoiceService.update(invoice)
+                        logger.info { "successfully charged invoice ${invoice.id}" }
                     }
                     // exit the loop if the charge did not throw a Network exception
                     break;
                 } catch (networkEx: NetworkException) {
+                    logger.warn { "a network exception was thrown when trying to charge invoice ${invoice.id}" }
                     exception = networkEx
                     // Sleep for 1 second and then retry
                     Thread.sleep(1000)
                 } catch (customerNotFoundEx: CustomerNotFoundException) {
+                    logger.warn { "customer ${invoice.customerId} not found when trying to charge invoice ${invoice.id}" }
                     exception = customerNotFoundEx
                     // if the customer is not updated, then there is no need to retry
                     if (updateCustomer(invoice)) break
                 } catch (currencyMismatchEx: CurrencyMismatchException) {
+                    logger.warn { "currency mismatch ${invoice.amount.currency} when trying to charge invoice ${invoice.id}" }
                     exception = currencyMismatchEx
                     // Get the currency from the customer table and update the invoice
                     updateCurrency(invoice)

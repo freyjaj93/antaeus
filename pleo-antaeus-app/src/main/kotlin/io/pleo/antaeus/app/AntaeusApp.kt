@@ -77,13 +77,14 @@ fun main() {
 
     // Create the scheduler for the billing service
     val scheduler = StdSchedulerFactory().scheduler
-    scheduler.start()
-    scheduler.context["billingService"] = billingService
 
     // Schedule the job for the billing service to run on the first of each month
     val job: JobDetail = newJob(BillingJob::class.java).withIdentity("billingJob", "group1").build()
     val trigger: CronTrigger = newTrigger().withIdentity("billingTrigger", "group1").withSchedule(cronSchedule("0 0 0 1 * ?")).build()
     scheduler.scheduleJob(job, trigger)
+
+    scheduler.start()
+    scheduler.context["billingService"] = billingService
 
     // Create REST web service
     AntaeusRest(
